@@ -179,14 +179,95 @@ unique(catch_df$species)</code></pre>
   mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;,1, catch_thousands)) %&gt;% 
   mutate(catch_thousands = as.integer(catch_thousands)) %&gt;% 
   mutate(catch = catch_thousands *1000)
-head(catch_df)</code></pre>
-<pre><code>##   Region Year species catch_thousands catch
-## 1    SSE 1886 Chinook               0     0
-## 2    SSE 1887 Chinook               0     0
-## 3    SSE 1888 Chinook               0     0
-## 4    SSE 1889 Chinook               0     0
-## 5    SSE 1890 Chinook               0     0
-## 6    SSE 1891 Chinook               0     0</code></pre>
+tail(catch_df)</code></pre>
+<pre><code>##      Region Year species catch_thousands  catch
+## 8535    NOP 1992    Chum             342 342000
+## 8536    NOP 1993    Chum             135 135000
+## 8537    NOP 1994    Chum              84  84000
+## 8538    NOP 1995    Chum              99  99000
+## 8539    NOP 1996    Chum              68  68000
+## 8540    NOP 1997    Chum              97  97000</code></pre>
+</div>
+<div id="split-apply-combines" class="section level1">
+<h1>Split-Apply-Combines</h1>
+<pre class="r"><code>catch_summarized &lt;- catch_df %&gt;% 
+  group_by(Region) %&gt;% 
+  summarise(mean_catch = mean(catch))
+head(catch_summarized)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Region mean_catch
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 ALU        40384.
+## 2 BER        16373.
+## 3 BRB      2709796.
+## 4 CHG       315487.
+## 5 CKI       683571.
+## 6 COP       179223.</code></pre>
+<pre class="r"><code>catch_year &lt;- catch_df %&gt;% 
+  filter(Year &gt;1990 | Year &lt; 1900) %&gt;% 
+  group_by(Year,species) %&gt;% 
+  summarise(catch_sum = sum(catch))
+head(catch_year)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+## # Groups:   Year [2]
+##    Year species catch_sum
+##   &lt;int&gt; &lt;chr&gt;       &lt;dbl&gt;
+## 1  1878 Chinook         0
+## 2  1878 Chum            0
+## 3  1878 Coho            0
+## 4  1878 Pink            0
+## 5  1878 Sockeye         0
+## 6  1879 Chinook         0</code></pre>
+<pre class="r"><code>catch_range &lt;- catch_df %&gt;% 
+  group_by(Region) %&gt;% 
+  summarise(catch_low = range(catch)[1],
+            catch_high = range(catch)[2])
+
+head(catch_range)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   Region catch_low catch_high
+##   &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+## 1 ALU            0    2597000
+## 2 BER            0     419000
+## 3 BRB            0   44269000
+## 4 CHG            0    2997000
+## 5 CKI            0    9718000
+## 6 COP            0    2986000</code></pre>
+<pre class="r"><code>catch_me_sd &lt;- catch_df %&gt;% 
+  group_by(Region, species) %&gt;% 
+  # calculate mean, sd, n
+  summarise(catch_mean = mean(catch),
+            catch_sd = sd(catch),
+            num_obs = n()) %&gt;% 
+  # filter for Chinook
+  filter(species == &quot;Chinook&quot; | species == &quot;Chum&quot; ) 
+  # | means or; &amp; means and.
+
+head(catch_me_sd)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+## # Groups:   Region [3]
+##   Region species catch_mean catch_sd num_obs
+##   &lt;chr&gt;  &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt;   &lt;int&gt;
+## 1 ALU    Chinook       23.0     214.      87
+## 2 ALU    Chum        2908.    11362.      87
+## 3 BER    Chinook       19.6     139.     102
+## 4 BER    Chum         696.     3449.     102
+## 5 BRB    Chinook    76211.    52222.     114
+## 6 BRB    Chum      527772.   493937.     114</code></pre>
+<p>notice: mutate a column for decade calculation</p>
+<pre class="r"><code>region_defs &lt;- read.csv(url(&quot;https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1&quot;, method = &quot;libcurl&quot;),
+                        stringsAsFactors = FALSE)
+
+region_defs &lt;- region_defs %&gt;% 
+  select(code,mgmtArea)
+
+catch_joined &lt;- left_join(catch_df,region_defs, by = c(&quot;Region&quot; = &quot;code&quot;))
+# c( ) means the left table is equal to right table
+
+new_catch_df &lt;- catch_df %&gt;% 
+  group_by(Region) %&gt;% 
+  summarise(total_catch = sum(catch)) %&gt;% 
+  left_join(region_defs, by = c(&quot;Region&quot; = &quot;code&quot;))</code></pre>
 </div>
 
 
