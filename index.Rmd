@@ -11,6 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 Hi Hong!
 Greetings from my laptop!!
 Bob
+
+Hi, Bob,
+It's second change.
+
 ```{r}
 suppressPackageStartupMessages({
   library(leaflet)
