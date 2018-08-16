@@ -33,3 +33,47 @@ catch_df <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df3
 head(catch_df)
 ```
 
+
+the pipe (%>%) operate
+command +shift+M for pipe operator
+command +shift+N for new R
+
+select filter
+
+```{r}
+catch_df <- catch_df %>% 
+  select(-All,-notesRegCode) 
+# select positively by name
+# select(Region,Year,Chinook,Sockeye,Coho,Pink,Chum) 
+head(catch_df)
+```
+
+Move from wide to long format (using gather)
+Reverse of gather is spread
+Rename a column
+
+
+```{r}
+catch_df <- catch_df %>% 
+  gather(key = "species",value = "catch",-Region,-Year) %>% 
+  rename(catch_thousands = catch)
+unique(catch_df$species)
+```
+
+Create a new column
+
+1) turn "I" into "1" in the catch_thousands column
+2) coerce catch_thousands into integer type
+3) convert catch_thousands to catch
+
+```{r}
+catch_df <- catch_df %>% 
+  mutate(catch_thousands = ifelse(catch_thousands == "I",1, catch_thousands)) %>% 
+  mutate(catch_thousands = as.integer(catch_thousands)) %>% 
+  mutate(catch = catch_thousands *1000)
+head(catch_df)
+```
+
+
+
+
