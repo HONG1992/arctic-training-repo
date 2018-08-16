@@ -1,6 +1,6 @@
 # arctic-training-repo
 Practice with Github at the Arctic data training
-Hong changed line3.
+Hong's change.
 
 This is a test repository for the training.
 
